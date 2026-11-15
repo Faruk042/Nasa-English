@@ -1,0 +1,1023 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="altar-serverless" content="1" />
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; media-src 'self' blob:; font-src 'self' data:; connect-src 'self' https://*.nasa.gov http://127.0.0.1:11434 http://localhost:11434; object-src 'none'; base-uri 'self'; form-action 'self';" />
+    <link rel="icon" href="./nasa_flame.ico" />
+    <title>ALTAR-NASA • Flame in Freefall | Microgravity Combustion &amp; Orion MCP Fire Safety Platform</title>
+    <link rel="stylesheet" href="./css/mission_control.css?v=6.3" />
+</head>
+<body>
+
+    <!-- ==================== TOP MISSION CONTROL HEADER ==================== -->
+    <header class="top-header">
+        <div class="brand-group">
+            <div class="brand-orb"></div>
+            <div class="brand-titles">
+                <h1>ALTAR-NASA • FLAME IN FREEFALL <span style="font-size:11px; color:#6ee7b7; font-weight:700;">v6.3</span></h1>
+                <p id="lbl-brand-sub" data-i18n="brand_sub">Microgravity Combustion Analysis &amp; Fire Safety Platform</p>
+            </div>
+        </div>
+
+        <nav class="nav-tabs" role="tablist">
+            <button class="nav-tab active" data-tab="tab-lab" id="nav-lab" data-i18n="nav_lab">Combustion Chamber</button>
+            <button class="nav-tab" data-tab="tab-rank" id="nav-rank" data-i18n="nav_rank">NASA Experiments</button>
+            <button class="nav-tab" data-tab="tab-live" id="nav-live" data-i18n="nav_live">Data &amp; Imagery</button>
+            <button class="nav-tab" data-tab="tab-copilot" id="nav-copilot" data-i18n="nav_copilot">Engineering Analysis</button>
+            <button class="nav-tab" data-tab="tab-settings" id="nav-settings" data-i18n="nav_settings">Validation &amp; Settings</button>
+        </nav>
+
+        <div class="header-actions">
+            <div class="status-pill" id="header-stream-pill" data-i18n-title="tip_stream_pill" title="Live Telemetry Stream Status">
+                <span class="status-dot" id="header-stream-dot" style="background:#64748b; box-shadow:none;"></span>
+                <span id="header-stream-text">Stream: Idle</span>
+            </div>
+            <div class="status-pill" id="header-engine-pill" data-i18n-title="tip_engine_pill" title="Active Analytical Solver Status">
+                <span class="status-dot" id="header-status-dot"></span>
+                <span id="header-engine-text">Solver Initializing</span>
+            </div>
+            <button class="btn-secondary" id="btn-export-report" style="padding: 5px 10px; font-size: 11.5px;" data-i18n-title="tip_export_report" title="Download Visual Engineering Report (.html / PDF)" data-i18n="btn_export_report">Download Report</button>
+        </div>
+    </header>
+
+    <!-- ==================== OPERATING MODE, VIEWPORT AUDIENCE, ISS R² & EXPORT SUBBAR ==================== -->
+    <div class="command-subbar">
+        <div class="subbar-group">
+            <span class="shield-pill" id="isolation-shield-pill" data-i18n="shield_badge">Browser Mode</span>
+            <label style="display:inline-flex; align-items:center; gap:6px; color:var(--text-muted); font-weight:600;">
+                <span data-i18n="lbl_audience">View:</span>
+                <select class="nasa-select" id="sel-audience-mode" style="width:auto; padding:3px 9px; font-size:11.8px;">
+                    <option value="researcher" data-en="Researcher">Researcher</option>
+                    <option value="student" data-en="Student">Student</option>
+                    <option value="engineer" data-en="Engineer">Engineer</option>
+                </select>
+            </label>
+        </div>
+
+        <div class="subbar-group">
+            <label style="display:inline-flex; align-items:center; gap:6px; cursor:pointer; color:#e2e8f0; font-weight:600;">
+                <input type="checkbox" id="chk-flight-overlay" checked />
+                <span data-i18n="chk_flight_pts">ISS 0G Benchmark</span>
+            </label>
+            <span class="validation-pill" id="flight-val-badge">Computing ISS 0G Calibration...</span>
+            <button class="btn-secondary" id="btn-export-csv" style="padding:4px 9px; font-size:11.5px;" data-i18n="btn_export_csv">Download CSV</button>
+            <button class="btn-secondary" id="btn-export-json" style="padding:4px 9px; font-size:11.5px;" data-i18n="btn_export_json">Download JSON</button>
+        </div>
+    </div>
+
+    <!-- ==================== MAIN WORKSPACE CONTAINER ==================== -->
+    <main class="main-container">
+
+        <!-- ================================================================
+             TAB 1: COMBUSTION CHAMBER
+             ================================================================ -->
+        <section class="tab-section active" id="tab-lab">
+            <div class="audience-guide-banner" id="audience-guide-banner"></div>
+
+            <!-- 5-PHASE MISSION MATERIAL CERTIFICATION BAR (NASA-STD-6001B) -->
+            <div class="mission-cert-bar" id="mission-cert-bar">
+                <div class="mission-cert-hdr">
+                    <span class="mission-cert-title" data-i18n="mission_cert_title">Mission Material Certification</span>
+                    <span class="mission-cert-sub" id="mission-cert-mat-lbl">NASA-STD-6001B</span>
+                </div>
+                <div class="mission-cert-pills" id="mission-cert-pills"></div>
+            </div>
+
+            <div class="lab-grid">
+
+                <!-- LEFT COLUMN: QUICK FILE INGEST, PRESETS & PARAMETER CONTROLS -->
+                <div class="panel-box">
+                    <div class="quick-ingest-box">
+                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:5px;">
+                            <strong style="font-size:12px; color:#7dd3fc;" data-i18n="quick_ingest_title">Quick File Load</strong>
+                            <span class="preset-badge">CSV • XLSX • ZIP • PDF • PNG • MP4</span>
+                        </div>
+                        <p style="font-size:11.2px; color:var(--text-muted); margin-bottom:7px;" data-i18n="quick_ingest_desc">
+                            Parameters from single or multi-file datasets and flame photos/videos are automatically merged and applied to 3D:
+                        </p>
+                        <input type="file" class="nasa-input" id="inp-quick-lab-media" multiple accept="image/*,video/mp4,video/webm,.gif,.mp4,.webm,.csv,.tsv,.xlsx,.zip,.json,.pdf,.txt,.md" style="padding:5px; font-size:11.5px;" />
+                        <div id="quick-lab-media-status" style="font-size:11.2px; color:#6ee7b7; margin-top:5px;"></div>
+                    </div>
+
+                    <div class="panel-header">
+                        <span class="panel-title" id="t-presets-title" data-i18n="presets_title">Mission Presets</span>
+                    </div>
+                    <div class="preset-list" id="preset-buttons-container"></div>
+
+                    <div class="panel-header" style="margin-top: 8px;">
+                        <span class="panel-title" id="t-controls-title" data-i18n="controls_title">Chamber Controls</span>
+                    </div>
+
+                    <div class="control-group">
+                        <div class="control-label"><span id="lbl-fuel" data-i18n="lbl_fuel">Fuel Type</span></div>
+                        <select class="nasa-select" id="inp-fuel">
+                            <option value="n_heptane" data-en="n-Heptane (C₇H₁₆ • FLEX Liquid Droplet)">n-Heptane (C₇H₁₆ • FLEX Liquid Droplet)</option>
+                            <option value="methanol" data-en="Methanol (CH₃OH • FLEX-2 Droplet)">Methanol (CH₃OH • FLEX-2 Droplet)</option>
+                            <option value="pmma" data-en="Cast PMMA Rod (BASS / SoFIE)">Cast PMMA Rod (BASS / SoFIE)</option>
+                            <option value="sibal" data-en="Sibal Cloth Slab (Saffire)">Sibal Cloth Slab (Saffire)</option>
+                            <option value="nomex" data-en="Nomex HT90-40 (EVA Suit Fabric)">Nomex HT90-40 (EVA Suit Fabric)</option>
+                            <option value="propane_cfig" data-en="Propane Spherical Burner (ACME CFI-G)">Propane Spherical Burner (ACME CFI-G)</option>
+                            <option value="hydrogen" data-en="Hydrogen Gas Jet (ACME / SLICE)">Hydrogen Gas Jet (ACME / SLICE)</option>
+                            <option value="custom_material" data-en="Custom Material">Custom Material</option>
+                        </select>
+                        <div class="custom-material-box" id="custom-material-box" style="display:none;">
+                            <div class="control-label" style="margin-bottom:4px;">
+                                <span data-i18n="lbl_custom_mat_name">Material Name</span>
+                            </div>
+                            <input type="text" class="nasa-input" id="inp-custom-mat-name" value="PEEK" data-i18n-placeholder="custom_mat_ph" placeholder="e.g. PEEK, XLPE, PTFE, Kapton" style="padding:6px 8px; font-size:12px; margin-bottom:6px;" />
+                            <div class="custom-mat-props-grid">
+                                <div>
+                                    <span class="custom-mat-mini-lbl" data-i18n="lbl_custom_rho">Density (kg/m³)</span>
+                                    <input type="number" class="nasa-input" id="inp-custom-rho" data-i18n-placeholder="ph_auto" placeholder="Auto" min="50" max="3000" step="10" style="padding:5px 7px; font-size:11.5px;" />
+                                </div>
+                                <div>
+                                    <span class="custom-mat-mini-lbl" data-i18n="lbl_custom_lambda">Conductivity (W/mK)</span>
+                                    <input type="number" class="nasa-input" id="inp-custom-lambda" data-i18n-placeholder="ph_auto" placeholder="Auto" min="0.02" max="5.0" step="0.01" style="padding:5px 7px; font-size:11.5px;" />
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="control-group">
+                        <div class="control-label">
+                            <span id="lbl-gravity" data-i18n="lbl_gravity">Gravity Level</span>
+                            <span class="control-val" id="val-gravity">0.00 G</span>
+                        </div>
+                        <input type="range" class="nasa-slider" id="inp-gravity" min="0" max="1.0" step="0.01" value="0.0" />
+                    </div>
+
+                    <div class="control-group">
+                        <div class="control-label">
+                            <span id="lbl-oxygen" data-i18n="lbl_oxygen">Oxygen Level</span>
+                            <span class="control-val" id="val-oxygen">21.0%</span>
+                        </div>
+                        <input type="range" class="nasa-slider" id="inp-oxygen" min="8" max="100" step="0.5" value="21.0" />
+                    </div>
+
+                    <div class="control-group">
+                        <div class="control-label">
+                            <span id="lbl-pressure" data-i18n="lbl_pressure">Ambient Pressure</span>
+                            <span class="control-val" id="val-pressure">14.7 psia</span>
+                        </div>
+                        <input type="range" class="nasa-slider" id="inp-pressure" min="3.5" max="30.0" step="0.05" value="14.7" />
+                    </div>
+
+                    <div class="control-group">
+                        <div class="control-label">
+                            <span id="lbl-airflow" data-i18n="lbl_airflow">Airflow Speed</span>
+                            <span class="control-val" id="val-airflow">0.2 cm/s</span>
+                        </div>
+                        <input type="range" class="nasa-slider" id="inp-airflow" min="0.0" max="40.0" step="0.2" value="0.2" />
+                        <div class="flow-dir-row">
+                            <span class="flow-dir-lbl" data-i18n="lbl_flow_dir">Flow Direction</span>
+                            <div class="flow-dir-toggle" role="group">
+                                <button type="button" class="flow-dir-btn active" id="btn-flow-opposed" data-flow="opposed" data-i18n="btn_flow_opposed">Opposed Flow</button>
+                                <button type="button" class="flow-dir-btn" id="btn-flow-concurrent" data-flow="concurrent" data-i18n="btn_flow_concurrent">Concurrent Flow</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="control-group">
+                        <div class="control-label">
+                            <span id="lbl-droplet" data-i18n="lbl_droplet">Sample Diameter</span>
+                            <span class="control-val" id="val-droplet">2.8 mm</span>
+                        </div>
+                        <input type="range" class="nasa-slider" id="inp-droplet" min="0.8" max="6.5" step="0.1" value="2.8" />
+                    </div>
+
+                    <div class="control-group">
+                        <div class="control-label"><span id="lbl-diluent" data-i18n="lbl_diluent">Diluent Gas</span></div>
+                        <select class="nasa-select" id="inp-diluent">
+                            <option value="N2" data-en="Nitrogen (N₂ • Standard Cabin)">Nitrogen (N₂ • Standard Cabin)</option>
+                            <option value="CO2" data-en="Carbon Dioxide (CO₂ • Suppression)">Carbon Dioxide (CO₂ • Suppression)</option>
+                            <option value="He" data-en="Helium (He • High Diffusivity)">Helium (He • High Diffusivity)</option>
+                        </select>
+                    </div>
+
+                    <!-- TELEMETRY SONIFICATION PANEL -->
+                    <div class="panel-header" style="margin-top: 14px;">
+                        <span class="panel-title" data-i18n="audio_title">Telemetry Sonification</span>
+                        <button class="btn-secondary" id="btn-audio-toggle" style="padding: 4px 10px; font-size: 11.5px;" data-i18n="audio_start">Play Audio</button>
+                    </div>
+                    <p style="font-size: 11.5px; color: var(--text-muted);" data-i18n="audio_desc">
+                        Maps flame temperature, radiative flux, and invisible Cool Flame telemetry to audio frequencies for eyes-free monitoring (data sonification).
+                    </p>
+                    <canvas class="audio-scope" id="audio-scope-canvas"></canvas>
+                </div>
+
+                <!-- CENTER COLUMN: 3D COMBUSTION CHAMBER & ORION MCP DIGITAL TWIN -->
+                <div class="panel-box">
+                    <div class="panel-header">
+                        <span class="panel-title" id="t-3d-title" data-i18n="chamber_title">3D Combustion Chamber &amp; Orion MCP</span>
+                    </div>
+
+                    <div class="viewport-mode-bar">
+                        <div class="vp-mode-left">
+                            <button type="button" class="vp-mode-btn active" id="btn-vp-chamber" data-i18n="vp_mode_chamber">3D Combustion Chamber</button>
+                            <button type="button" class="vp-mode-btn" id="btn-vp-spacecraft" data-i18n="vp_mode_spacecraft">Orion MCP</button>
+                        </div>
+
+                        <div class="orion-section-bar" id="orion-section-bar" style="display:none;">
+                            <button type="button" class="orion-sec-btn active" data-hull="exterior" data-i18n="orion_hull_ext">Outer Hull</button>
+                            <button type="button" class="orion-sec-btn" data-hull="cutaway" data-i18n="orion_hull_cut">Cutaway</button>
+                            <span class="orion-sec-sep"></span>
+                            <button type="button" class="orion-sec-btn" data-zone-focus="0" data-i18n="orion_sec_0">Command</button>
+                            <button type="button" class="orion-sec-btn" data-zone-focus="2" data-i18n="orion_sec_2">Living</button>
+                            <button type="button" class="orion-sec-btn" data-zone-focus="1" data-i18n="orion_sec_1">Power</button>
+                            <button type="button" class="orion-sec-btn" data-zone-focus="3" data-i18n="orion_sec_3">Tunnel</button>
+                            <button type="button" class="orion-sec-btn" data-zone-focus="4" data-i18n="orion_sec_4">Air</button>
+                        </div>
+                    </div>
+
+                    <div id="chamber-stage-group">
+                        <div class="chamber-wrapper" id="chamber-viewport-wrap">
+                            <div id="three-canvas-container"></div>
+
+                            <div class="viewport-hud-top">
+                                <div class="regime-pill" id="hud-regime-badge">0G SPHERICAL DIFFUSION FLAME</div>
+                                <div class="camera-toolbar">
+                                    <button class="cam-btn" id="btn-reignite" style="border-color:#f59e0b; color:#fcd34d;" data-i18n="cam_reignite">Re-Ignite</button>
+                                </div>
+                            </div>
+
+                            <div class="viewport-callout-bottom" id="hud-callout-summary">
+                                Buoyant convection is eliminated. Because hot combustion products cannot rise, a symmetric sapphire-blue chemiluminescent reaction sphere forms around the fuel droplet.
+                            </div>
+                        </div>
+
+                        <div class="legend-strip" id="chamber-legend-strip">
+                            <span class="legend-item"><span class="legend-dot" style="background:#38bdf8;"></span> <span data-i18n="leg_blue">Blue Flame</span></span>
+                            <span class="legend-item"><span class="legend-dot" style="background:#f59e0b;"></span> <span data-i18n="leg_soot">Soot Glow</span></span>
+                            <span class="legend-item"><span class="legend-dot" style="background:#a855f7;"></span> <span data-i18n="leg_cool">Cool Flame</span></span>
+                            <span class="legend-item"><span class="legend-dot" style="background:#d97706;"></span> <span data-i18n="leg_geom">Fuel Sample</span></span>
+                        </div>
+                    </div>
+
+                    <!-- ORION MCP 3D MODEL, CABIN CAMERAS & COMPARTMENT ISOLATION CONSOLE -->
+                    <div class="spacecraft-stage-wrap" id="spacecraft-3d-stage">
+                        <div class="sc-canvas-card">
+                            <canvas id="sc-gl-canvas"></canvas>
+                        </div>
+
+                        <div class="sc-fdir-console" id="spacecraft-fdir-console">
+                            <div class="sc-room-topbar">
+                                <button type="button" class="sc-cam-main-btn active" id="sc-btn-cam-toggle">Hide Camera</button>
+                                <div class="sc-room-tabs" id="sc-room-tabs">
+                                    <button type="button" class="sc-room-tab active" data-zone="0">Command Deck</button>
+                                    <button type="button" class="sc-room-tab" data-zone="2">Living Bay</button>
+                                    <button type="button" class="sc-room-tab" data-zone="1">Power &amp; Avionics</button>
+                                    <button type="button" class="sc-room-tab" data-zone="3">Docking Tunnel</button>
+                                    <button type="button" class="sc-room-tab" data-zone="4">Air &amp; Life Support</button>
+                                </div>
+                            </div>
+
+                            <div class="sc-fdir-banner" id="sc-fdir-banner" data-severity="NOMINAL">
+                                Command Deck (Cockpit) is normal. Entry-exit hatches and air inlet-outlet vents are open.
+                            </div>
+
+                            <!-- AUTONOMOUS PROTECTION COUNTDOWN & MANUAL OVERRIDE BAR -->
+                            <div class="sc-auto-countdown-box" id="sc-auto-countdown-box" style="display:none;">
+                                <div class="sc-auto-countdown-top">
+                                    <span id="sc-auto-countdown-text">Auto-Protection Threshold exceeded: staged isolation starting in 5.0 s</span>
+                                    <button type="button" class="sc-override-btn" id="sc-btn-cancel-auto">Manual Override</button>
+                                </div>
+                                <div class="sc-auto-countdown-track">
+                                    <div class="sc-auto-countdown-fill" id="sc-auto-countdown-fill"></div>
+                                </div>
+                            </div>
+
+                            <div class="sc-lower-workspace" id="sc-lower-workspace">
+                                <div class="sc-live-cam-panel" id="sc-live-cam-panel">
+                                    <div class="sc-live-cam-hdr">
+                                        <span class="sc-rec-indicator"><span class="sc-rec-dot"></span> <span id="sc-pip-label">REC • Command</span></span>
+                                        <span class="sc-cam-mode-group">
+                                            <button type="button" id="sc-btn-cam-optical" class="sc-mini-btn active">Optical</button>
+                                            <button type="button" id="sc-btn-ir-mode" class="sc-mini-btn">Thermal</button>
+                                            <button type="button" id="sc-btn-cam-split" class="sc-mini-btn">Split</button>
+                                            <button type="button" id="sc-btn-webcam" class="sc-mini-btn">Webcam</button>
+                                        </span>
+                                    </div>
+                                    <canvas id="sc-pip-canvas" width="520" height="292"></canvas>
+                                    <div class="sc-live-cam-ftr">
+                                        <span id="sc-pip-temp">Temp: 21 °C • CO: 1 ppm</span>
+                                        <span id="sc-pip-detect" style="color:#34d399; font-weight:700;">Status: Safe</span>
+                                    </div>
+                                </div>
+
+                                <div class="sc-room-controls-col">
+                                    <div class="sc-hw-grid">
+                                        <button type="button" class="sc-hw-btn isolate-trig" id="sc-btn-isolate-room">Close &amp; Isolate Room</button>
+                                        <button type="button" class="sc-hw-btn" id="sc-btn-hatch">Close Entry-Exit Hatch</button>
+                                        <button type="button" class="sc-hw-btn" id="sc-btn-fan">Close Air Inlet-Outlet</button>
+                                        <button type="button" class="sc-hw-btn fire-trig" id="sc-btn-fire-toggle">Start Fire Test</button>
+                                        <button type="button" class="sc-hw-btn mist-trig" id="sc-btn-mist">Water Mist Suppressor</button>
+                                        <button type="button" class="sc-hw-btn" id="sc-btn-sspc">Cut Room Power</button>
+                                    </div>
+
+                                    <div class="sc-room-summary-box">
+                                        <div><span class="sc-sum-lbl" id="sc-lbl-dp">Room Pressure Delta:</span> <strong id="sc-stat-phys" class="sc-sum-val">+0.00 kPa</strong></div>
+                                        <div><span class="sc-sum-lbl" id="sc-lbl-smoke">Inter-Room Smoke:</span> <strong id="sc-stat-smoke" class="sc-sum-val">None (0.00 g/s)</strong></div>
+                                        <div><span class="sc-sum-lbl" id="sc-lbl-air">Isolation State:</span> <strong id="sc-stat-isolation" class="sc-sum-val">Hatch &amp; Air Open</strong></div>
+                                        <div><span class="sc-sum-lbl" id="sc-lbl-reign">0G Core / Re-Ignition:</span> <strong id="sc-stat-reignition" class="sc-sum-val">0% (294 K)</strong></div>
+                                        <div style="grid-column: span 2;"><span class="sc-sum-lbl" id="sc-lbl-reentry">Safe Re-Entry Time:</span> <strong id="sc-stat-reentry" class="sc-sum-val">Ready (0 s)</strong></div>
+                                    </div>
+
+                                    <div class="sc-room-Subactions">
+                                        <div class="sc-auto-thresh-wrap">
+                                            <label class="sc-auto-label">
+                                                <input type="checkbox" id="sc-chk-ai-auto" checked />
+                                                <span id="sc-lbl-auto">Auto-Protection Threshold</span>
+                                            </label>
+                                            <input type="range" id="sc-inp-auto-thresh" class="sc-thresh-slider" min="40" max="90" step="5" value="65" />
+                                            <span id="sc-val-auto-thresh" class="sc-thresh-val">Risk ≥ 65</span>
+                                        </div>
+                                        <div class="sc-subaction-btns" style="display:flex; flex-wrap:wrap; gap:6px;">
+                                            <button type="button" class="btn-primary" id="sc-btn-full-sequence" data-en="Auto Response" style="padding:4px 9px; font-size:11px;">Auto Response</button>
+                                            <button type="button" class="btn-secondary" id="sc-btn-camras" data-en="Clean Cabin Air" style="padding:4px 9px; font-size:11px;">Clean Cabin Air</button>
+                                            <button type="button" class="btn-secondary" id="sc-btn-ai-copilot" data-en="Analyze Room" style="padding:4px 9px; font-size:11px;">Analyze Room</button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="analog-material-notice" id="analog-material-banner" style="display:none;"></div>
+                    <div class="partial-g-notice" id="partial-g-banner"></div>
+
+                    <!-- MULTI-SENSOR TIME-SERIES CHART -->
+                    <div style="margin-top: 14px;">
+                        <div style="display:flex; justify-content:space-between; align-items:center;">
+                            <span style="font-size:12.5px; font-weight:700; color:var(--accent-cyan);" data-i18n="chart_sensor_title">
+                                Sensor Time Chart
+                            </span>
+                            <span style="font-size:11px; color:var(--text-muted);" data-i18n="chart_sensor_sub">Optical • IR • CO</span>
+                        </div>
+                        <div class="chart-canvas-wrap">
+                            <canvas class="sci-chart" id="chart-multisensor"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- RIGHT COLUMN: LIVE MEASUREMENTS & FLAMMABILITY BOUNDARY MAP -->
+                <div class="panel-box lab-right-col">
+                    <div class="panel-header">
+                        <span class="panel-title" data-i18n="tel_panel_title">Live Measurements</span>
+                        <button class="btn-primary" id="btn-ai-interpret-sim" style="padding: 6px 11px; font-size: 12px;" data-i18n="btn_ai_interpret">
+                            Detailed Analysis
+                        </button>
+                    </div>
+
+                    <div class="risk-meter-box">
+                        <div style="display:flex; justify-content:space-between; align-items:center;">
+                            <span style="font-size:12px; font-weight:700; color:var(--text-muted);" data-i18n="lbl_risk_score">FIRE RISK SCORE</span>
+                            <span id="tel-risk-score" style="font-family:Consolas,monospace; font-size:18px; font-weight:800; color:#fcd34d;">42 / 100</span>
+                        </div>
+                        <div class="risk-bar-track">
+                            <div class="risk-bar-fill" id="tel-risk-bar"></div>
+                        </div>
+                        <div class="risk-driver-note" id="tel-risk-driver"></div>
+                    </div>
+
+                    <div class="telemetry-grid">
+                        <div class="tel-card">
+                            <div class="tel-label" data-i18n="card_temp">Flame Temperature</div>
+                            <div class="tel-value" id="tel-temp">1999 K</div>
+                            <div class="tel-sub" id="tel-temp-c">1726 °C</div>
+                        </div>
+                        <div class="tel-card">
+                            <div class="tel-label" data-i18n="card_moc">Critical Oxygen</div>
+                            <div class="tel-value" id="tel-moc">16.4%</div>
+                            <div class="tel-sub" id="tel-po2">P_O₂: 3.09 psia</div>
+                        </div>
+                        <div class="tel-card">
+                            <div class="tel-label" data-i18n="card_kburn">Burn Constant</div>
+                            <div class="tel-value" id="tel-kburn">0.74 mm²/s</div>
+                            <div class="tel-sub" id="tel-lifetime">Burn Life: ~10.5 s</div>
+                        </div>
+                        <div class="tel-card">
+                            <div class="tel-label" data-i18n="card_spread">Spread Rate</div>
+                            <div class="tel-value" id="tel-spread">0.55 mm/s</div>
+                            <div class="tel-sub" id="tel-radius">B_oq: 6.2 • Rf/Rd: 5.4</div>
+                        </div>
+                        <div class="tel-card">
+                            <div class="tel-label" data-i18n="card_rad">Radiative Loss</div>
+                            <div class="tel-value" id="tel-radloss">21.0%</div>
+                            <div class="tel-sub" id="tel-flux">Heat Flux: 28.4 kW/m²</div>
+                        </div>
+                        <div class="tel-card">
+                            <div class="tel-label" data-i18n="card_co">Carbon Monoxide</div>
+                            <div class="tel-value" id="tel-co">145 ppm</div>
+                            <div class="tel-sub" id="tel-soot">Soot: 0.18 • Sh: 2.08</div>
+                        </div>
+                    </div>
+
+                    <div style="margin-top: 10px;">
+                        <div style="display:flex; justify-content:space-between; align-items:center;">
+                            <span style="font-size:12.5px; font-weight:700; color:var(--accent-cyan);" data-i18n="chart_moc_title">
+                                Flammability Map
+                            </span>
+                        </div>
+                        <p style="font-size:11.5px; color:var(--text-muted); margin-top:2px;" data-i18n="chart_moc_desc">
+                            0G, 0.16G Lunar (LUCI/FM2), 0.38G Mars, 1G MOC curves and ±1σ analytical confidence band bound partial-gravity flammability.
+                        </p>
+                        <div class="chart-canvas-wrap">
+                            <canvas class="sci-chart" id="chart-flammability"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- BOTTOM ROW: GOVERNING EQUATIONS & INSTANT SYNTHESIS -->
+            <div class="lab-bottom-grid">
+                <div class="panel-box">
+                    <div class="panel-header">
+                        <span class="panel-title" data-i18n="formula_table_title">Governing Equations</span>
+                        <span class="preset-badge" id="formula-active-source-badge">Source: Combustion Chamber</span>
+                    </div>
+                    <div class="nasa-table-wrap">
+                        <table class="nasa-table">
+                            <thead>
+                                <tr>
+                                    <th data-i18n="th_law">Physical Law</th>
+                                    <th data-i18n="th_eq">Equation</th>
+                                    <th data-i18n="th_val">Live Value</th>
+                                    <th data-i18n="th_status">Status</th>
+                                </tr>
+                            </thead>
+                            <tbody id="formula-results-tbody"></tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div class="panel-box">
+                    <div class="panel-header">
+                        <span class="panel-title" data-i18n="live_synthesis_title">Instant Summary</span>
+                        <button class="btn-secondary" id="btn-deep-ai-from-formula" style="padding:4px 10px; font-size:11.5px;" data-i18n="btn_full_ai_report">
+                            Full Report
+                        </button>
+                    </div>
+                    <div class="live-formula-commentary" id="live-formula-ai-box">
+                        Loading telemetry and dimensionless transport equations...
+                    </div>
+                </div>
+            </div>
+
+            <!-- LIFE SUPPORT CLOCK -->
+            <div class="panel-box cabin-timeline-panel" id="cabin-timeline-panel">
+                <div class="panel-header" style="flex-wrap:wrap; gap:10px;">
+                    <span class="panel-title" data-i18n="cabin_clock_title">Life Support Clock</span>
+                    <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
+                        <select class="nasa-select" id="sel-habitat-volume" style="width:auto; padding:5px 9px; font-size:12px;">
+                            <option value="iss_module" data-en="ISS Destiny Free Air (70 m³)">ISS Destiny Free Air (70 m³)</option>
+                            <option value="lunar_hab" data-en="Orion / Gateway Cabin (19 m³)">Orion / Gateway Cabin (19 m³)</option>
+                            <option value="lunar_rover" data-en="Pressurized Lunar Rover (11 m³)">Pressurized Lunar Rover (11 m³)</option>
+                            <option value="mars_hab" data-en="Mars Surface Cabin (28 m³)">Mars Surface Cabin (28 m³)</option>
+                            <option value="eva_suit" data-en="EVA Spacesuit (0.18 m³)">EVA Spacesuit (0.18 m³)</option>
+                        </select>
+                        <select class="nasa-select" id="sel-crew-response" style="width:auto; padding:5px 9px; font-size:12px;">
+                            <option value="10" data-en="+10 s Rapid Action">+10 s Rapid Action</option>
+                            <option value="30" selected data-en="+30 s Standard Action">+30 s Standard Action</option>
+                            <option value="60" data-en="+60 s Delayed Action">+60 s Delayed Action</option>
+                            <option value="999" data-en="Unmitigated Burn">Unmitigated Burn</option>
+                        </select>
+                        <span class="preset-badge" id="cabin-severity-badge">COMPUTING</span>
+                    </div>
+                </div>
+                <div id="cabin-timeline-summary" style="font-size:12.8px; color:#e2e8f0; margin-bottom:6px;"></div>
+                <div class="milestone-grid" id="cabin-milestones-grid"></div>
+            </div>
+        </section>
+
+        <!-- ================================================================
+             TAB 2: NASA EXPERIMENTS
+             ================================================================ -->
+        <section class="tab-section" id="tab-rank">
+            <div class="panel-box">
+                <div class="ranking-toolbar">
+                    <div>
+                        <h2 style="font-size:16px; color:#ffffff;" data-i18n="rank_main_title">Experiment Ranking</h2>
+                        <p style="font-size:12.5px; color:var(--text-muted);" data-i18n="rank_main_desc">
+                            Ranks and compares 15 verified NASA PSI experiments by physical similarity across stations, EVA suits, Lunar/Mars bases, and pressurized rovers.
+                        </p>
+                    </div>
+                    <div style="display:flex; gap:8px; flex-wrap:wrap; align-items:center;">
+                        <input type="text" class="nasa-input" id="inp-rank-query" data-i18n-placeholder="rank_placeholder" placeholder="e.g., cool flame, CFI-G, DAFT dust, SPICE, rover..." style="width:290px;" />
+                        <button class="btn-primary" id="btn-run-rank" data-i18n="btn_rerank">Sort</button>
+                        <button class="btn-secondary" id="btn-compare-selected" data-i18n="btn_compare">Compare Selected</button>
+                    </div>
+                </div>
+
+                <!-- HARDWARE FACILITY FILTER -->
+                <div class="hw-filter-bar" id="hw-filter-container">
+                    <span style="font-size:12px; font-weight:700; color:var(--accent-cyan); margin-right:4px;" data-i18n="lbl_hw_filter">Hardware Filter:</span>
+                    <button class="hw-filter-btn active" data-hw="ALL" data-i18n="hw_all">All Experiments</button>
+                    <button class="hw-filter-btn" data-hw="CIR" data-i18n="hw_cir">ISS CIR / ACME</button>
+                    <button class="hw-filter-btn" data-hw="MSG" data-i18n="hw_msg">MSG Flow Duct</button>
+                    <button class="hw-filter-btn" data-hw="CYGNUS" data-i18n="hw_cygnus">Cygnus Vehicle</button>
+                    <button class="hw-filter-btn" data-hw="CABIN" data-i18n="hw_cabin">Smoke &amp; Dust</button>
+                </div>
+
+                <div class="scope-footnote-banner" data-i18n="psi_rocket_scope_note">
+                    NASA PSI Scope Note: High gas velocities inside rocket engines and thrusters render combustion effectively gravity-independent; PSI focuses on fire safety in crew cabins, spacesuits, and surface habitats.
+                </div>
+
+                <div class="nasa-table-wrap">
+                    <table class="nasa-table">
+                        <thead>
+                            <tr>
+                                <th style="width:40px;" data-i18n="th_sel">Pick</th>
+                                <th style="width:50px;" data-i18n="th_rank">Rank</th>
+                                <th style="width:130px;" data-i18n="th_prog">Program</th>
+                                <th data-i18n="th_exp_detail">Summary &amp; Findings</th>
+                                <th style="width:148px;" data-i18n="th_cond">Test Conditions</th>
+                                <th style="width:132px;" data-i18n="th_prio">Match Score</th>
+                                <th style="width:142px;" data-i18n="th_evid">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="ranking-tbody"></tbody>
+                    </table>
+                </div>
+
+                <!-- INTRA-FACILITY TEST VARIATIONS -->
+                <div class="intra-runs-box" id="intra-runs-section">
+                    <div class="panel-header" style="margin-bottom:8px;">
+                        <span class="panel-title" id="intra-runs-title">Test Variations</span>
+                        <span class="preset-badge" id="intra-runs-badge">PSI-FLEX-01</span>
+                    </div>
+                    <p style="font-size:12px; color:var(--text-muted);" id="intra-runs-sub" data-i18n="intra_runs_hint">
+                        Click &quot;Test Variations&quot; on any experiment above to see how runs inside the same facility differed and stayed constant:
+                    </p>
+                    <div class="intra-runs-grid" id="intra-runs-cards"></div>
+                </div>
+
+                <!-- EXPERIMENT COMPARISON -->
+                <div id="comparison-section" style="margin-top: 20px;">
+                    <div class="panel-header">
+                        <span class="panel-title" data-i18n="cmp_section_title">Experiment Comparison</span>
+                    </div>
+                    <div id="comparison-conflict-banner" class="conflict-bounding-banner" style="display:none;"></div>
+                    <div id="comparison-synthesis-banner" style="padding:11px 14px; background:rgba(14,165,233,0.12); border:1px solid rgba(56,189,248,0.35); border-radius:8px; font-size:13px;"></div>
+                    <div class="compare-cards-grid" id="comparison-cards-container"></div>
+                </div>
+
+                <!-- TERRESTRIAL APPLICATIONS -->
+                <div style="margin-top: 22px;">
+                    <div class="panel-header">
+                        <span class="panel-title" data-i18n="earth_section_title">Earth Applications (Live Impact Calculator)</span>
+                    </div>
+                    <div class="transfer-grid" id="earth-transfer-container"></div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ================================================================
+             TAB 3: DATA & IMAGERY
+             ================================================================ -->
+        <section class="tab-section" id="tab-live">
+
+            <!-- LIVE NASA TELEMETRY STREAM -->
+            <div class="panel-box" id="continuous-stream-panel" style="margin-bottom: 16px;">
+                <div class="panel-header">
+                    <span class="panel-title" data-i18n="stream_panel_title">Live NASA Stream</span>
+                    <span class="preset-badge" id="stream-state-badge">Stopped (Ready)</span>
+                </div>
+                <p style="font-size:12.5px; color:var(--text-muted); margin-bottom:12px;" data-i18n="stream_panel_desc">
+                    Polls official NASA databases (NTRS / OSDR-PSI) or custom JSON / CSV links at your chosen interval and updates the simulation.
+                </p>
+
+                <div style="display:grid; grid-template-columns: 220px 1fr 140px auto auto; gap:8px; align-items:center; flex-wrap:wrap;">
+                    <select class="nasa-select" id="sel-stream-source">
+                        <option value="ntrs" data-en="NASA NTRS Stream">NASA NTRS Stream</option>
+                        <option value="osdr" data-en="NASA PSI Stream">NASA PSI Stream</option>
+                        <option value="custom_url" data-en="Custom Data URL">Custom Data URL</option>
+                    </select>
+                    <input type="text" class="nasa-input" id="inp-stream-target" value="auto" data-i18n-placeholder="stream_target_ph" placeholder="Query ('auto' = cycles through all NASA experiments) or https://... URL" />
+                    <select class="nasa-select" id="sel-stream-interval">
+                        <option value="15" data-en="Every 15 Seconds">Every 15 Seconds</option>
+                        <option value="25" selected data-en="Every 25 Seconds">Every 25 Seconds</option>
+                        <option value="45" data-en="Every 45 Seconds">Every 45 Seconds</option>
+                        <option value="90" data-en="Every 90 Seconds">Every 90 Seconds</option>
+                    </select>
+                    <button class="btn-primary" id="btn-stream-toggle" data-i18n="btn_stream_start">Start Stream</button>
+                    <button class="btn-secondary" id="btn-stream-poll-now" data-i18n="btn_stream_now">Fetch Now</button>
+                </div>
+
+                <div style="margin-top:10px; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:10px;">
+                    <label style="display:inline-flex; align-items:center; gap:8px; font-size:12.5px; cursor:pointer; color:#e2e8f0;">
+                        <input type="checkbox" id="chk-stream-autosync" checked />
+                        <span data-i18n="chk_stream_sync">Automatically apply incoming data to 3D Chamber</span>
+                    </label>
+                    <span id="stream-meta-info" style="font-size:11.5px; color:var(--text-muted);" data-i18n="stream_not_started">Stream has not started yet.</span>
+                </div>
+
+                <div id="stream-events-box" style="margin-top:12px; max-height:230px; overflow-y:auto;"></div>
+            </div>
+
+            <div class="two-col-grid">
+
+                <!-- LEFT: NASA ARCHIVE SEARCH -->
+                <div class="panel-box">
+                    <div class="panel-header">
+                        <span class="panel-title" data-i18n="live_search_title">NASA Archive Search</span>
+                        <span class="preset-badge" id="live-api-badge">Ready</span>
+                    </div>
+                    <p style="font-size:12.5px; color:var(--text-muted); margin-bottom:12px;" data-i18n="live_search_desc">
+                        Search official psi.nasa.gov, ntrs.nasa.gov, and osdr.nasa.gov services in real time for scientific reports and experiment records.
+                    </p>
+                    <div style="display:flex; gap:8px; margin-bottom:14px; flex-wrap:wrap;">
+                        <input type="text" class="nasa-input" id="inp-live-nasa-q" value="FLEX microgravity droplet cool flame" style="flex:1; min-width:200px;" />
+                        <select class="nasa-select" id="sel-live-source" style="min-width:210px; width:auto;">
+                            <option value="osdr" data-en="NASA PSI Datasets">NASA PSI Datasets</option>
+                            <option value="ntrs" data-en="NASA NTRS Papers">NASA NTRS Papers</option>
+                        </select>
+                        <button class="btn-primary" id="btn-fetch-nasa-live" data-i18n="btn_fetch_live">Search Archive</button>
+                    </div>
+
+                    <div style="display:flex; gap:6px; flex-wrap:wrap; margin-bottom:12px;">
+                        <button class="btn-secondary quick-ntrs-btn" data-q="Saffire spacecraft fire">Saffire</button>
+                        <button class="btn-secondary quick-ntrs-btn" data-q="BASS-II solid combustion microgravity">BASS-II</button>
+                        <button class="btn-secondary quick-ntrs-btn" data-q="FLEX droplet cool flame">FLEX / CFI</button>
+                        <button class="btn-secondary quick-ntrs-btn" data-q="SoFIE solid fuel ignition">SoFIE</button>
+                        <button class="btn-secondary quick-ntrs-btn" data-q="ACME E-FIELD CFI-G microgravity">ACME / CFI-G</button>
+                        <button class="btn-secondary quick-ntrs-btn" data-q="DAFT smoke aerosol microgravity">DAFT / SAME</button>
+                    </div>
+
+                    <div id="live-nasa-results-list" style="max-height:460px; overflow-y:auto;"></div>
+                </div>
+
+                <!-- RIGHT: DATA BUNDLE & FLAME IMAGERY ANALYSIS -->
+                <div class="panel-box">
+                    <div class="panel-header">
+                        <span class="panel-title" data-i18n="ingest_panel_title">Data Bundle &amp; Flame Analysis</span>
+                    </div>
+                    <p style="font-size:12.5px; color:var(--text-muted); margin-bottom:12px;" data-i18n="ingest_panel_desc">
+                        Upload single or multi-file NASA PSI bundles (.csv, .tsv, .xlsx, .zip, .pdf, .json) and flame photos/videos (.png, .jpg, .mp4); automatically merged and synced to 3D.
+                    </p>
+
+                    <div class="control-group">
+                        <div class="control-label"><span data-i18n="lbl_scrape_url">Parse Web Link</span></div>
+                        <div style="display:flex; gap:8px;">
+                            <input type="text" class="nasa-input" id="inp-scrape-url" placeholder="https://psi.nasa.gov/physci/repo/data/investigations/PSI-69" />
+                            <button class="btn-secondary" id="btn-scrape-url" style="white-space:nowrap;" data-i18n="btn_scrape_url">Sync to 3D</button>
+                        </div>
+                        <div id="url-scrape-status-line" style="font-size:11.8px; margin-top:6px; min-height:16px;"></div>
+                    </div>
+
+                    <div id="media-analysis-result-box" style="margin-top:8px; margin-bottom:12px;"></div>
+
+                    <div class="control-group" style="margin-top:12px;">
+                        <div class="control-label"><span data-i18n="lbl_choose_file">Choose Data Bundle or Photo (Multi-File)</span></div>
+                        <input type="file" class="nasa-input" id="inp-doc-file" multiple accept="image/*,video/mp4,video/webm,.gif,.mp4,.webm,.csv,.tsv,.xlsx,.zip,.json,.pdf,.txt,.md" />
+                        <label style="display:inline-flex; align-items:center; gap:7px; font-size:12px; color:#cbd5e1; margin-top:7px; cursor:pointer;">
+                            <input type="checkbox" id="chk-media-autosync" checked />
+                            <span data-i18n="chk_media_sync">Automatically apply extracted parameters to 3D Chamber</span>
+                        </label>
+                        <button class="btn-primary" id="btn-upload-doc" style="margin-top:8px; width:100%;" data-i18n="btn_upload_doc">
+                            Analyze File Bundle
+                        </button>
+                    </div>
+
+                    <!-- DYNAMIC CUSTOM EQUATION VERIFIER -->
+                    <div class="custom-eq-card">
+                        <div class="panel-header" style="margin-bottom:6px;">
+                            <span class="panel-title" data-i18n="custom_eq_title">Custom Equation Verifier</span>
+                            <span class="preset-badge">AST • R² • RMSE</span>
+                        </div>
+                        <p style="font-size:11.6px; color:var(--text-muted); margin-bottom:8px;" data-i18n="custom_eq_desc">
+                            Enter a custom combustion correlation using (O2, P, U, G, D0, B_oq, Sh, Da, Re, Ra, Tf, chi_r) and validate against solver curves:
+                        </p>
+                        <div style="display:flex; gap:5px; flex-wrap:wrap; margin-bottom:7px;">
+                            <button type="button" class="btn-secondary custom-eq-preset-btn" data-eq="0.82 * (O2 / 21.0)**0.72 * (P / 14.7)**0.25 * (1 + 0.16 * sqrt(U))" data-target="k_burn" style="padding:2px 8px; font-size:10.8px;" data-i18n="eq_pre_d2">d²-Law (K)</button>
+                            <button type="button" class="btn-secondary custom-eq-preset-btn" data-eq="16.5 - 2.4 * exp(-((U - 4.8) / 5.5)**2) + 2.1 * sqrt(G)" data-target="moc_pct" style="padding:2px 8px; font-size:10.8px;">MOC (O₂%)</button>
+                            <button type="button" class="btn-secondary custom-eq-preset-btn" data-eq="ln(1 + B_oq) / ln(1 + O2 / 100.0) * 0.14" data-target="standoff_ratio" style="padding:2px 8px; font-size:10.8px;">Rf/Rd</button>
+                        </div>
+                        <input type="text" class="nasa-input" id="inp-custom-eq" value="0.82 * (O2 / 21.0)**0.72 * (P / 14.7)**0.25 * (1 + 0.16 * sqrt(U))" style="font-family:Consolas,monospace; font-size:11.8px; margin-bottom:7px;" />
+                        <div style="display:grid; grid-template-columns:1fr auto; gap:8px; align-items:center;">
+                            <select class="nasa-select" id="sel-custom-eq-target" style="padding:6px 9px; font-size:11.8px;">
+                                <option value="k_burn" data-en="Target: Burn Constant K (mm²/s)">Target: Burn Constant K (mm²/s)</option>
+                                <option value="moc_pct" data-en="Target: Critical Oxygen MOC (O₂%)">Target: Critical Oxygen MOC (O₂%)</option>
+                                <option value="standoff_ratio" data-en="Target: Flame Standoff Ratio (Rf/Rd)">Target: Flame Standoff Ratio (Rf/Rd)</option>
+                                <option value="flame_spread_mm_s" data-en="Target: Spread Rate V_f (mm/s)">Target: Spread Rate V_f (mm/s)</option>
+                                <option value="flame_temp_k" data-en="Target: Flame Temperature T_f (K)">Target: Flame Temperature T_f (K)</option>
+                            </select>
+                            <button type="button" class="btn-primary" id="btn-eval-custom-eq" style="padding:6px 12px; font-size:11.8px;" data-i18n="btn_eval_custom_eq">Validate Equation</button>
+                        </div>
+                        <div id="custom-eq-result-box" style="margin-top:8px;"></div>
+                    </div>
+
+                    <div class="panel-header" style="margin-top:16px;">
+                        <span class="panel-title" data-i18n="rag_test_title">Text Search</span>
+                    </div>
+                    <div style="display:flex; gap:8px; margin-bottom:10px;">
+                        <input type="text" class="nasa-input" id="inp-rag-search" data-i18n-placeholder="rag_search_ph" placeholder="Search concepts in experiment records..." />
+                        <button class="btn-secondary" id="btn-rag-search" data-i18n="btn_rag_search">Search</button>
+                    </div>
+                    <div id="rag-search-results" style="max-height:200px; overflow-y:auto;"></div>
+                </div>
+
+            </div>
+        </section>
+
+        <!-- ================================================================
+             TAB 4: ENGINEERING ANALYSIS
+             ================================================================ -->
+        <section class="tab-section" id="tab-copilot">
+            <div class="copilot-layout">
+
+                <!-- LEFT: QUICK PROMPTS & FILE ATTACHMENT -->
+                <div class="panel-box">
+                    <div class="panel-header">
+                        <span class="panel-title" data-i18n="copilot_tasks_title">Quick Questions</span>
+                    </div>
+                    <div class="preset-list">
+                        <button class="preset-btn copilot-prompt-btn" data-prompt-en="Analyze my active 3D combustion chamber telemetry and dimensionless numbers (K, B_oq, Sh, Ra, Ri, Da, χ_r, MOC) using governing equations; rank matching NASA PSI investigations and provide spacecraft fire safety &amp; Earth transfer insights.">
+                            <span data-i18n="cp_btn_1">Evaluate Active Chamber</span>
+                        </button>
+                        <button class="preset-btn copilot-prompt-btn" data-prompt-en="Compare EVA Spacesuit (4.3 psia, 100% O2), Lunar Base / Pressurized Rover (10.2 psia, 32% O2), and ACME CFI-G (85% O2) atmospheres against standard ISS air (14.7 psia, 21% O2) in terms of P_O2, pre-breathe tradeoffs, and flame spread.">
+                            <span data-i18n="cp_btn_2">Compare Suit &amp; Rover</span>
+                        </button>
+                        <button class="preset-btn copilot-prompt-btn" data-prompt-en="Explain the current partial-gravity (Lunar 0.16G &amp; Martian 0.38G) data gap in NASA PSI, upcoming LUCI and FM2 experiments, how 0G and 1G bound intermediate flammability, and ACME E-FIELD ionic-wind emulation.">
+                            <span data-i18n="cp_btn_3">Partial Gravity Analysis</span>
+                        </button>
+                        <button class="preset-btn copilot-prompt-btn" data-prompt-en="Explain invisible Cool Flame NTC regimes across FLEX, CFI, and ACME CFI-G via radiative loss χ_r, alongside DAFT/SAME multi-channel smoke vs. lunar-dust sensor discrimination.">
+                            <span data-i18n="cp_btn_4">Cool Flame &amp; Sensors</span>
+                        </button>
+                        <button class="preset-btn copilot-prompt-btn" data-prompt-en="Why is Halon 1301 strictly banned in crewed spacecraft? Compare SoFIE-MIST fine water mist and HVAC shutoff, and detail NASA spinoffs to terrestrial smoke detectors, firefighter turnout gear, and SCBA air tanks.">
+                            <span data-i18n="cp_btn_5">Water Mist &amp; Spinoffs</span>
+                        </button>
+                    </div>
+
+                    <div class="panel-header" style="margin-top:14px;">
+                        <span class="panel-title" data-i18n="copilot_attach_title">Attach File</span>
+                    </div>
+                    <p style="font-size:11.5px; color:var(--text-muted); margin-bottom:6px;" data-i18n="copilot_attach_desc">
+                        Selecting a flame photo/video (.png/.jpg/.gif/.mp4) or data file (.csv/.xlsx/.zip/.pdf/.json) updates both the 3D simulation and governing equation analysis:
+                    </p>
+                    <input type="file" class="nasa-input" id="inp-chat-image" accept="image/*,video/mp4,video/webm,.gif,.mp4,.webm,.csv,.tsv,.xlsx,.zip,.json,.pdf,.txt,.md" />
+                    <div id="chat-image-status" style="font-size:11.5px; color:var(--accent-emerald); margin-top:6px;"></div>
+
+                    <div style="margin-top:14px; display:flex; align-items:center; gap:8px;">
+                        <input type="checkbox" id="chk-deep-6stage" checked />
+                        <label for="chk-deep-6stage" style="font-size:12px; color:var(--text-main); cursor:pointer;" data-i18n="chk_6stage">
+                            NASA-STD-6001B Safety Check Active
+                        </label>
+                    </div>
+                </div>
+
+                <!-- RIGHT: ENGINEERING ANALYSIS CONSOLE -->
+                <div class="chat-window">
+                    <div class="chat-topbar">
+                        <div style="display:flex; align-items:center; gap:8px;">
+                            <span style="font-size:12px; font-weight:700; color:var(--accent-cyan);" data-i18n="lbl_active_engine">Analysis Mode:</span>
+                            <select class="nasa-select" id="sel-copilot-provider" style="min-width:300px; max-width:390px; width:auto; padding:5px 10px; font-size:12px;">
+                                <option value="auto" data-en="Auto (Physics Solver + Active Engine)">Auto (Physics Solver + Active Engine)</option>
+                                <option value="physics" data-en="Analytical Physics Solver">Analytical Physics Solver</option>
+                                <option value="ollama" data-en="Offline Local Model">Offline Local Model</option>
+                                <option value="antigravity" data-en="Local System Bridge">Local System Bridge</option>
+                                <option value="gemini" data-en="Google Gemini Gateway">Google Gemini Gateway</option>
+                                <option value="openrouter" data-en="OpenRouter Gateway">OpenRouter Gateway</option>
+                            </select>
+                        </div>
+                        <div style="display:flex; align-items:center; gap:8px;">
+                            <span style="font-size:11.5px; color:var(--text-muted);" id="copilot-live-context-tag" data-i18n="copilot_ctx_tag">
+                                3D Chamber &amp; 15 PSI Experiments Linked
+                            </span>
+                            <button class="btn-secondary" id="btn-clear-chat" style="padding:4px 9px; font-size:11px;" data-i18n="btn_clear_chat">Reset</button>
+                        </div>
+                    </div>
+
+                    <div class="chat-messages" id="chat-messages-box">
+                        <div class="msg-bubble msg-ai console-readiness-card" id="welcome-ai-bubble">
+                            <h3 data-i18n="welcome_title">Engineering Analysis &amp; Decision Support</h3>
+                            <div class="console-readiness-grid">
+                                <div class="console-kv-item">
+                                    <div class="console-kv-label" data-i18n="kv_solver_lbl">NUMERICAL SOLVER</div>
+                                    <div class="console-kv-val" data-i18n="kv_solver_val">d² • de Ris • B_oq • Sh • Da</div>
+                                </div>
+                                <div class="console-kv-item">
+                                    <div class="console-kv-label" data-i18n="kv_corpus_lbl">DATA SOURCES</div>
+                                    <div class="console-kv-val">15 NASA PSI + NTRS + OSDR</div>
+                                </div>
+                                <div class="console-kv-item">
+                                    <div class="console-kv-label" data-i18n="kv_auditor_lbl">SAFETY STANDARD</div>
+                                    <div class="console-kv-val">NASA-STD-6001B • JSC-20584 SMAC</div>
+                                </div>
+                            </div>
+                            <p data-i18n="welcome_p1">
+                                This module evaluates the active 3D chamber state, dimensionless transport numbers, ±1σ analytical uncertainty bounds, ISS flight validation (R² / RMSE), and 15 verified NASA PSI experiments.
+                            </p>
+                            <p style="margin-top:6px;" data-i18n="welcome_p2">
+                                Ask about flammability bounds, invisible cool-flame behavior, and fine water mist protocols across ISS modules, Orion MCP, EVA suits (100% O₂ @ 4.3 psia), Lunar/Mars bases, and pressurized rovers (10.2 psia).
+                            </p>
+                        </div>
+                    </div>
+
+                    <div class="chat-input-bar">
+                        <input type="text" class="nasa-input" id="inp-chat-msg" data-i18n-placeholder="chat_input_ph" placeholder="Ask about combustion equations, spacesuit/rover atmospheres, or NASA PSI experiments..." />
+                        <button class="btn-danger" id="btn-cancel-chat" style="display:none;" data-i18n="btn_stop_chat">Stop</button>
+                        <button class="btn-primary" id="btn-send-chat" data-i18n="btn_send_chat">Run Analysis</button>
+                    </div>
+                </div>
+
+            </div>
+        </section>
+
+        <!-- ================================================================
+             TAB 5: VALIDATION & SETTINGS
+             ================================================================ -->
+        <section class="tab-section" id="tab-settings">
+            <div class="settings-grid">
+
+                <!-- TOP FULL-WIDTH MODULE: PHYSICAL RULES -->
+                <div class="panel-box" style="grid-column: 1 / -1;">
+                    <div class="panel-header">
+                        <span class="panel-title" data-i18n="set_card3_title">Physical Rules</span>
+                        <span class="preset-badge" data-i18n="con_enforced_badge">ACTIVE AUDIT</span>
+                    </div>
+                    <p style="font-size:12.5px; color:var(--text-muted); margin-bottom:12px;" data-i18n="set_card3_desc">
+                        The following transport laws, dimensionless regime bounds, and NASA-STD-6001B flight safety rules are strictly enforced across all solver calculations:
+                    </p>
+                    <div id="directives-list-container"></div>
+                </div>
+
+                <!-- MIDDLE-LEFT MODULE: SOLVER STATUS -->
+                <div class="panel-box">
+                    <div class="panel-header">
+                        <span class="panel-title" data-i18n="set_card1_title">Solver Status</span>
+                        <button class="btn-secondary" id="btn-refresh-ollama" style="padding:4px 10px; font-size:11.5px;" data-i18n="btn_check_all">Refresh Status</button>
+                    </div>
+
+                    <div class="solver-spec-grid">
+                        <div class="solver-spec-card">
+                            <div class="spec-k" data-i18n="spec_k1">TRANSPORT SOLVER</div>
+                            <div class="spec-v">d² • de Ris • B_oq • Sh • Da</div>
+                        </div>
+                        <div class="solver-spec-card">
+                            <div class="spec-k" data-i18n="spec_k2">ISS VALIDATION</div>
+                            <div class="spec-v" id="settings-flight-val-spec" data-i18n="spec_v2_live">Live ISS 0G Computing</div>
+                        </div>
+                        <div class="solver-spec-card">
+                            <div class="spec-k" data-i18n="spec_k3">OPERATING MODE</div>
+                            <div class="spec-v" data-i18n="spec_v3">In-Browser</div>
+                        </div>
+                        <div class="solver-spec-card">
+                            <div class="spec-k" data-i18n="spec_k4">SAFETY STANDARD</div>
+                            <div class="spec-v">NASA-STD-6001B • JSC-20584 SMAC</div>
+                        </div>
+                    </div>
+
+                    <div class="control-group">
+                        <div class="control-label"><span data-i18n="lbl_def_provider">Default Analysis Mode</span></div>
+                        <select class="nasa-select" id="cfg-active-provider">
+                            <option value="auto" data-en="Auto (Physics Solver + Active Engine)">Auto (Physics Solver + Active Engine)</option>
+                            <option value="physics" data-en="Analytical Physics Solver">Analytical Physics Solver</option>
+                            <option value="ollama" data-en="Offline Local Model">Offline Local Model</option>
+                            <option value="antigravity" data-en="Local System Bridge">Local System Bridge</option>
+                            <option value="gemini" data-en="Google Gemini Gateway">Google Gemini Gateway</option>
+                            <option value="openrouter" data-en="OpenRouter Gateway">OpenRouter Gateway</option>
+                            <option value="custom" data-en="Custom Endpoint">Custom Endpoint</option>
+                        </select>
+                    </div>
+
+                    <div class="control-group">
+                        <div class="control-label">
+                            <span data-i18n="lbl_agy_model">Local System Bridge</span>
+                            <span class="control-val" id="agy-cli-badge">Initializing</span>
+                        </div>
+                        <select class="nasa-select" id="cfg-agy-model">
+                            <option value="gemini-2.5-flash" data-en="Gemini 2.5 Flash — Scientific Synthesis">Gemini 2.5 Flash — Scientific Synthesis</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- MIDDLE-RIGHT MODULE: LOCAL MODEL SETTINGS -->
+                <div class="panel-box">
+                    <div class="panel-header">
+                        <span class="panel-title" data-i18n="set_ollama_hub_title">Local Model Settings</span>
+                    </div>
+
+                    <div class="control-group">
+                        <div class="control-label"><span data-i18n="lbl_ollama_host">Local Service Address</span></div>
+                        <input type="text" class="nasa-input" id="cfg-ollama-host" value="http://127.0.0.1:11434" />
+                    </div>
+
+                    <div class="control-group">
+                        <div class="control-label">
+                            <span data-i18n="lbl_ollama_model">Installed Local Model</span>
+                            <span class="control-val" id="ollama-online-badge">Initializing</span>
+                        </div>
+                        <select class="nasa-select" id="cfg-ollama-model">
+                            <option value="auto" data-en="Auto (Recommended Local Model)">Auto (Recommended Local Model)</option>
+                        </select>
+                    </div>
+
+                    <div class="control-group" style="margin-top:10px;">
+                        <div class="control-label"><span data-i18n="lbl_ollama_pull">Download Model or Clear Memory</span></div>
+                        <div style="display:flex; gap:8px;">
+                            <input type="text" class="nasa-input" id="inp-ollama-pull" data-i18n-placeholder="ollama_pull_ph" placeholder="Model name" />
+                            <button class="btn-secondary" id="btn-ollama-pull" data-i18n="btn_pull">Download</button>
+                            <button class="btn-secondary" id="btn-ollama-unload" data-i18n-title="tip_unload" title="Clear Memory" data-i18n="btn_unload">Clear</button>
+                        </div>
+                    </div>
+
+                    <div style="margin-top:12px; padding-top:10px; border-top:1px solid var(--border-subtle);">
+                        <button class="btn-secondary" id="btn-test-provider" style="width:100%; justify-content:center;" data-i18n="btn_test_provider">
+                            Test Solver
+                        </button>
+                        <div id="provider-test-output" style="font-size:12px; color:#93c5fd; margin-top:8px;"></div>
+                    </div>
+                </div>
+
+                <!-- COLLAPSED ACCORDION: ADVANCED GATEWAY CONNECTIONS -->
+                <details class="nasa-accordion" id="ext-gateway-accordion">
+                    <summary>
+                        <span>
+                            <span class="acc-chevron"></span>
+                            <span data-i18n="set_card2_title">Advanced Connections</span>
+                        </span>
+                        <span class="preset-badge" data-i18n="acc_opt_badge">OPTIONAL</span>
+                    </summary>
+
+                    <div class="nasa-accordion-body">
+                        <div class="panel-box" style="margin:0;">
+                            <p style="font-size:12px; color:var(--text-muted); margin-bottom:12px;" data-i18n="set_card2_desc">
+                                Connection keys are never embedded in source code; stored only in your local user configuration file.
+                            </p>
+
+                            <div class="control-group">
+                                <div class="control-label">
+                                    <span data-i18n="lbl_gemini_key">Google Gemini Key</span>
+                                    <span id="st-gemini-key" style="font-size:11px;"></span>
+                                </div>
+                                <input type="password" class="nasa-input" id="cfg-gemini-key" placeholder="AIzaSy..." />
+                            </div>
+
+                            <div class="control-group">
+                                <div class="control-label"><span data-i18n="lbl_gemini_model">Google Gemini Model</span></div>
+                                <input type="text" class="nasa-input" id="cfg-gemini-model" value="gemini-2.5-flash" />
+                            </div>
+
+                            <div class="control-group">
+                                <div class="control-label">
+                                    <span data-i18n="lbl_agy_key">Local Bridge Key (Optional)</span>
+                                    <span id="st-agy-sdk" style="font-size:11px; color:var(--accent-cyan);"></span>
+                                </div>
+                                <input type="password" class="nasa-input" id="cfg-antigravity-key" data-i18n-placeholder="agy_key_ph" placeholder="Optional API Key..." />
+                            </div>
+
+                            <div class="control-group">
+                                <div class="control-label"><span data-i18n="lbl_or_key">OpenRouter Key</span></div>
+                                <input type="password" class="nasa-input" id="cfg-openrouter-key" placeholder="sk-or-v1-..." />
+                            </div>
+
+                            <div class="control-group">
+                                <div class="control-label"><span data-i18n="lbl_or_model">OpenRouter Model</span></div>
+                                <input type="text" class="nasa-input" id="cfg-openrouter-model" value="google/gemini-2.0-flash-exp:free" />
+                            </div>
+                        </div>
+
+                        <div class="panel-box" style="margin:0; display:flex; flex-direction:column; justify-content:space-between;">
+                            <div>
+                                <div class="control-group">
+                                    <div class="control-label"><span data-i18n="lbl_custom_gw">Custom Endpoint Connection</span></div>
+                                    <div style="display:grid; grid-template-columns:1fr 1fr 110px; gap:6px;">
+                                        <input type="text" class="nasa-input" id="cfg-custom-url" placeholder="https://api.example.com/v1" />
+                                        <input type="password" class="nasa-input" id="cfg-custom-key" data-i18n-placeholder="custom_key_ph" placeholder="API Key" />
+                                        <input type="text" class="nasa-input" id="cfg-custom-model" data-i18n-placeholder="custom_model_ph" placeholder="Model" />
+                                    </div>
+                                </div>
+
+                                <div class="control-group" style="margin-top:14px;">
+                                    <div class="control-label"><span data-i18n="lbl_extra_dir">Reporting Notes</span></div>
+                                    <textarea class="nasa-textarea" id="cfg-extra-directives" rows="4" data-i18n-placeholder="extra_dir_ph" placeholder="e.g., Always include psia alongside metric kPa pressure units in technical outputs..."></textarea>
+                                    <button class="btn-secondary" id="btn-save-directives" style="margin-top:8px;" data-i18n="btn_save_dir">Update Notes</button>
+                                </div>
+                            </div>
+
+                            <button class="btn-primary" id="btn-save-config" style="width:100%; margin-top:14px;" data-i18n="btn_save_cfg">
+                                Save Settings
+                            </button>
+                        </div>
+                    </div>
+                </details>
+
+            </div>
+        </section>
+
+    </main>
+
+    <div class="toast-banner" id="app-toast"></div>
+
+    <!-- LOCALLY BUNDLED THREE.JS & APPLICATION MODULES -->
+    <script src="./js/vendor/three.min.js"></script>
+    <script src="./js/three_chamber_3d.js?v=6.3"></script>
+    <script src="./js/spacecraft_ultra_hd_3d.js?v=6.3"></script>
+    <script src="./js/charts_and_audio.js?v=6.3"></script>
+    <script src="./js/serverless_kernel.js?v=6.3"></script>
+    <script src="./js/app_controller.js?v=6.3"></script>
+</body>
+</html>
