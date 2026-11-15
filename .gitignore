@@ -1,0 +1,35 @@
+# ============================================================================
+# ALTAR-NASA v6.3 — Zero-Trust Security & Build Exclusion Rules
+# ============================================================================
+
+# Secrets, API Keys & Local User Configuration (Never Tracked in Git)
+.env
+.env.*
+!.env.example
+config.local.json
+*secret*
+*.pem
+*.key
+
+# Local Developer Workspace Notes & Legacy Spec Profiles
+GEMINI.md
+AGENTS.md
+.agents/
+Nasa.spec
+Nasa_2.spec
+Nasa_3.spec
+verify_*.py
+capture_*.py
+
+# Python Bytecode, Folder-Local Portable Runtime (.runtime) & Build Outputs
+__pycache__/
+*.py[cod]
+*$py.class
+build/
+dist/
+.runtime/
+Nasa_4.exe
+*.egg-info/
+.venv/
+venv/
+.pytest_cache/
