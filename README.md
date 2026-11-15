@@ -1,9 +1,9 @@
-# Nasa-English — Microgravity Combustion Analysis & Spacecraft Fire Safety Platform
+# NASA-ENGLISH — Microgravity Combustion Analysis & Spacecraft Fire Safety Platform
 
 [![License: Apache-2.0](https://img.shields.io/badge/License-Apache_2.0-0ea5e9.svg)](LICENSE)
 
-- **Live Web App (Zero Install, Run Directly in Browser):** https://faruk042.github.io/Nasa-English/
-- **Standalone Windows Desktop App (`Nasa_4.exe` — Zero-Install Download):** https://github.com/Faruk042/Nasa-English/releases/latest
+- **Live Web App (Zero Install, Run Directly in Browser):** https://faruk042.github.io/NASA-ENGLISH/
+- **Standalone Windows Desktop App (`Nasa_4.exe` — Zero-Install Download):** https://github.com/Faruk042/NASA-ENGLISH/releases/latest
 
 ---
 
@@ -182,7 +182,7 @@ You do not need Python, Git, or any development tools pre-installed to explore t
 
 Click the live GitHub Pages deployment from any desktop, laptop, or tablet browser:
 
-- **Live Web App:** https://faruk042.github.io/Nasa-English/
+- **Live Web App:** https://faruk042.github.io/NASA-ENGLISH/
 
 You can also double-click `web_serverless/index.html` inside any downloaded copy of this repository to run the exact same serverless 3D edition offline.
 
@@ -190,7 +190,7 @@ You can also double-click `web_serverless/index.html` inside any downloaded copy
 
 If you want the full desktop edition (including local `127.0.0.1` server, live NASA PSI/NTRS bridge, and local Ollama integration) with zero setup:
 
-1. Open **[GitHub Releases (`v6.3`)](https://github.com/Faruk042/Nasa-English/releases/latest)** and download **`Nasa_4.exe`**.
+1. Open **[GitHub Releases (`v6.3`)](https://github.com/Faruk042/NASA-ENGLISH/releases/latest)** and download **`Nasa_4.exe`**.
 2. Double-click `Nasa_4.exe` to launch immediately.
    *(Note: Because `Nasa_4.exe` is an unsigned open-source PyInstaller binary, if Windows SmartScreen displays an informational prompt on first launch, click **More info -> Run anyway**.)*
 
@@ -207,8 +207,8 @@ If you download the source ZIP on a fresh Windows PC without Python or Git:
 ### Option 4 — Manual Python / Git Setup for Developers (Windows / macOS / Linux)
 
 ```bash
-git clone https://github.com/Faruk042/Nasa-English.git
-cd Nasa-English
+git clone https://github.com/Faruk042/NASA-ENGLISH.git
+cd NASA-ENGLISH
 
 # Create and activate a virtual environment
 python -m venv .venv

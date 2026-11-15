@@ -9,4 +9,4 @@ This folder (`web_serverless/`) contains the zero-backend static browser edition
 ## Publishing on GitHub Pages
 1. Copy the contents of `web_serverless/` (`index.html`, `css/`, `js/`, `nasa_flame.ico`, `sample_data/`, `.nojekyll`) to the root of the `gh-pages` branch.
 2. Under repository **Settings -> Pages -> Deploy from a branch (`gh-pages` / `/root`)**, save the branch configuration.
-3. Live web URL: `https://faruk042.github.io/Nasa-English/`
+3. Live web URL: `https://faruk042.github.io/NASA-ENGLISH/`
